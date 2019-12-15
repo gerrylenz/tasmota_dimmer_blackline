@@ -208,6 +208,8 @@ enum UserSelectablePins {
   GPIO_SM2135_DAT,     // SM2135 Dat
   GPIO_DEEPSLEEP,      // Kill switch for deepsleep
   GPIO_EXS_ENABLE,     // EXS MCU Enable
+  GPIO_EXS_DimCh1,     // EXS Dimmbutton Channel 1
+  GPIO_EXS_DimCh2,     // EXS Dimmbutton Channel 2
   GPIO_SENSOR_END };
 
 // Programmer selectable GPIO functionality
@@ -285,7 +287,7 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_DDS2382_TX "|" D_SENSOR_DDS2382_RX "|"
   D_SENSOR_DDSU666_TX "|" D_SENSOR_DDSU666_RX "|"
   D_SENSOR_SM2135_CLK "|" D_SENSOR_SM2135_DAT "|"
-  D_SENSOR_DEEPSLEEP "|" D_SENSOR_EXS_ENABLE "|"
+  D_SENSOR_DEEPSLEEP "|" D_SENSOR_EXS_ENABLE "|" D_SENSOR_EXS_DIM1 "|" D_SENSOR_EXS_DIM2
   ;
 
 const char kSensorNamesFixed[] PROGMEM =
@@ -394,6 +396,10 @@ enum SupportedModules {
   SYF05,
   SONOFF_L1,
   SONOFF_IFAN03,
+#ifdef SK3
+  SK3_01,
+  SK3_02,
+#endif
   EXS_DIMMER,
   MAXMODULE};
 
@@ -578,6 +584,8 @@ const uint8_t kGpioNiceList[] PROGMEM = {
 #endif
 #ifdef USE_EXS_DIMMER
   GPIO_EXS_ENABLE,     // EXS MCU Enable
+  GPIO_EXS_DimCh1,     // EXS Dimmbutton Channel 1
+  GPIO_EXS_DimCh2,     // EXS Dimmbutton Channel 2
 #endif
 #endif  // USE_LIGHT
 
@@ -2154,6 +2162,48 @@ const mytmplt kModules[MAXMODULE] PROGMEM = {
      GPIO_REL4,        // GPIO15 WIFI_O3 Relay 4 (0 = Off, 1 = On) controlling the fan
      0, 0
   },
+#ifdef SK3
+  { "WiFi-SK3 01",     // 
+     0,                // GPIO00
+     0,                // GPIO01
+     0,                // GPIO02
+     0,                // GPIO03
+     0,                // GPIO04
+     GPIO_KEY1,        // GPIO05
+                       // GPIO06 (SD_CLK   Flash)
+                       // GPIO07 (SD_DATA0 Flash QIO/DIO/DOUT)
+                       // GPIO08 (SD_DATA1 Flash QIO/DIO/DOUT)
+     0,                // GPIO09 (SD_DATA2 Flash QIO or ESP8285)
+     0,                // GPIO10 (SD_DATA3 Flash QIO or ESP8285)
+                       // GPIO11 (SD_CMD   Flash)
+     0,                // GPIO12
+     0,                // GPIO13
+     0,                // GPIO14
+     GPIO_REL1,        // GPIO15
+     GPIO_LED1,        // GPIO16
+     0
+  },
+  { "WiFi-SK3 02",     // 
+     0,                // GPIO00
+     0,                // GPIO01
+     0,                // GPIO02
+     0,                // GPIO03
+     GPIO_REL2,        // GPIO04
+     0,                // GPIO05
+                       // GPIO06 (SD_CLK   Flash)
+                       // GPIO07 (SD_DATA0 Flash QIO/DIO/DOUT)
+                       // GPIO08 (SD_DATA1 Flash QIO/DIO/DOUT)
+     0,                // GPIO09 (SD_DATA2 Flash QIO or ESP8285)
+     0,                // GPIO10 (SD_DATA3 Flash QIO or ESP8285)
+                       // GPIO11 (SD_CMD   Flash)
+     GPIO_KEY1,        // GPIO12
+     GPIO_REL1,        // GPIO13
+     GPIO_KEY2,        // GPIO14
+     0,                // GPIO15
+     GPIO_LED1,        // GPIO16
+     0
+  },
+#endif  
   { "EXS Dimmer",      // EXS_DIMMER - EX-Store WiFi Dimmer v4, two channel (ESP8266 w/ separate MCU dimmer)
                        // https://ex-store.de/2-Kanal-RS232-WiFi-WLan-Dimmer-Modul-V4-fuer-Unterputzmontage-230V-3A
                        // https://ex-store.de/2-Kanal-RS232-WiFi-WLan-Dimmer-Modul-V4-fuer-Unterputzmontage-230V-3A-ESP8266-V12-Stift-und-Buchsenleisten
@@ -2169,9 +2219,9 @@ const mytmplt kModules[MAXMODULE] PROGMEM = {
      0,                // GPIO09 (SD_DATA2 Flash QIO or ESP8285)
      0,                // GPIO10 (SD_DATA3 Flash QIO or ESP8285)
                        // GPIO11 (SD_CMD   Flash)
-     GPIO_USER,        // GPIO12
+     GPIO_EXS_DimCh1,  // GPIO12 Dimmbutton Channel 1
      GPIO_EXS_ENABLE,  // GPIO13 EXS MCU Enable
-     GPIO_USER,        // GPIO14
+     GPIO_EXS_DimCh2,  // GPIO14 Dimmbutton Channel 2
      0,                // GPIO15
      0, 0
   }
