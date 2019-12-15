@@ -2,7 +2,11 @@
 Zugeschnitten auf das Dimmer Modul und das Blackline Modul
 
 Letzte Änderung 15.12.2019:<br>
-Tasten Dimmfunktion integriert.
+Tasten Dimmfunktion integriert.<br>
+Kurzer druck: "an/Aus"<br>
+Langer druck: Dimmen<br>
+Langer Druck Langer Druck: Dimmrichtung ändern<br>
+
 # 
 
 <img src="/tools/logo/TASMOTA_FullLogo_Vector.svg" alt="Logo" align="right" height="76"/>
