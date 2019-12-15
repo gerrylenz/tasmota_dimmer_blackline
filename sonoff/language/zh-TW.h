@@ -627,6 +627,8 @@
 #define D_SENSOR_SM2135_DAT    "SM2135 Dat"
 #define D_SENSOR_DEEPSLEEP     "DeepSleep"
 #define D_SENSOR_EXS_ENABLE    "EXS Enable"
+#define D_SENSOR_EXS_DIM1      "Dim Chn1"
+#define D_SENSOR_EXS_DIM2      "Dim Chn2"
 
 // Units
 #define D_UNIT_AMPERE "安"
