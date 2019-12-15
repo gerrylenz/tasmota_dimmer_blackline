@@ -54,6 +54,10 @@
 #define EXS_BUFFER_SIZE 256
 #define EXS_ACK_TIMEOUT 200 // 200 ms ACK timeout
 
+#define ENTPRELLZEIT 10        // old 30
+#define DRUECKZEIT 300         // old 300
+#define DIMVERZOEGERUNG 50     // old 150
+
 #include <TasmotaSerial.h>
 
 TasmotaSerial *ExsSerial = nullptr;
@@ -84,6 +88,23 @@ struct EXS
   uint8_t dimm[2] = {0, 0};
   DIMMER dimmer;
 } Exs;
+
+/*
+ * Dimmbuttons
+ */
+enum { WARTE, ZEIT, DIMMEN };
+byte IstFunc = WARTE;
+byte channel = 0;
+uint32_t aktMillis,
+prellMillis,
+tasterMillis,
+dimMillis;
+byte dimWert;
+byte dimIndex1, dimIndex2;
+bool rauf1 = true,
+rauf2 = true,
+aktKey,
+altKey;
 
 /*
  * Internal Functions
@@ -310,6 +331,10 @@ void ExsPacketProcess(void)
       Exs.dimmer.channel[1].bright_tbl = Exs.buffer[10];
 
       Exs.dimmer.gate_lock = Exs.buffer[11];
+      dimIndex1 = changeUIntScale(Exs.dimmer.channel[0].bright_tbl, 0, 255, 0, 100);
+      dimIndex2 = changeUIntScale(Exs.dimmer.channel[1].bright_tbl, 0, 255, 0, 100);
+      Exs.dimm[0] = Exs.dimmer.channel[0].bright_tbl;
+      Exs.dimm[1] = Exs.dimmer.channel[1].bright_tbl;
     }
     else
       /*
@@ -342,6 +367,11 @@ void ExsPacketProcess(void)
       Exs.dimmer.channel[1].bright_tbl = Exs.buffer[8] - 48;
 
       Exs.dimmer.gate_lock = Exs.buffer[9] - 48;
+      
+      dimIndex1 = changeUIntScale(Exs.dimmer.channel[0].bright_tbl, 0, 255, 0, 100);
+      dimIndex2 = changeUIntScale(Exs.dimmer.channel[1].bright_tbl, 0, 255, 0, 100);
+      Exs.dimm[0] = Exs.dimmer.channel[0].bright_tbl;
+      Exs.dimm[1] = Exs.dimmer.channel[1].bright_tbl;
     }
 
     ExsDebugState();
@@ -352,6 +382,135 @@ void ExsPacketProcess(void)
     break;
   }
 }
+//************************************************************************************
+void dim(byte channel) {
+	switch (channel) {
+	case 1:
+		if (!Exs.dimmer.channel[channel - 1].dimm) return;
+		if (rauf1) {
+			dimIndex1++;
+			if (dimIndex1 >= 100) {
+				dimIndex1 = 100;
+			}
+		}
+		else {
+			dimIndex1--;
+			if (dimIndex1 < 1) {
+				dimIndex1 = 1;
+			}
+		}
+      ExsSetBri(channel -1, changeUIntScale(dimIndex1, 0, 100, 0, 255));
+		break;
+	case 2:
+		if (!Exs.dimmer.channel[channel - 1].dimm) return;
+		if (rauf2) {
+			dimIndex2++;
+			if (dimIndex2 >= 100) {
+				dimIndex2 = 100;
+			}
+		}
+		else {
+			dimIndex2--;
+			if (dimIndex2 < 1) {
+				dimIndex2 = 1;
+			}
+		}
+      ExsSetBri(channel -1, changeUIntScale(dimIndex2, 0, 100, 0, 255));
+		break;
+	}
+}
+//************************************************************************************
+void Looper(byte channel) {
+  char scmnd[20];
+
+	switch (IstFunc) {
+	case WARTE:
+
+		if (!aktKey && altKey) { // flanke
+			tasterMillis = aktMillis;
+			IstFunc = ZEIT;
+		}
+
+		if (dimIndex1 == 99) {
+			rauf1 = false; // Richtung ändern
+		}
+		else
+			if (dimIndex1 == 1) {
+				rauf1 = true; // Richtung ändern
+			}
+
+		if (dimIndex2 == 99) {
+			rauf2 = false; // Richtung ändern
+		}
+		else
+			if (dimIndex2 == 1) {
+				rauf2 = true; // Richtung ändern
+			}
+
+		break;
+	case ZEIT:
+		if (aktMillis - tasterMillis >= DRUECKZEIT) {
+			IstFunc = DIMMEN;
+		}
+		if (aktKey) {
+      if (channel > 0) {
+        Exs.dimmer.channel[channel-1].on = !Exs.dimmer.channel[channel-1].on;
+        ExecuteCommandPower(channel, !Exs.dimmer.channel[channel-1].on, SRC_BUTTON);
+			}
+			IstFunc = WARTE;
+		}
+		break;
+	case DIMMEN:
+		if (aktKey) {
+			IstFunc = WARTE;
+			channel = 0;
+			rauf1 = !rauf1;
+			rauf2 = !rauf2;
+      snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "1 %d"), changeUIntScale(Exs.dimmer.channel[0].bright_tbl, 0, 255, 0, 100));
+      ExecuteCommand(scmnd, SRC_BUTTON);
+      snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "2 %d"), changeUIntScale(Exs.dimmer.channel[1].bright_tbl, 0, 255, 0, 100));
+      ExecuteCommand(scmnd, SRC_BUTTON);
+		}
+		if (aktMillis - dimMillis >= DIMVERZOEGERUNG) {
+			dimMillis = aktMillis;
+			dim(channel);
+		}
+	}
+}
+
+//************************************************************************************
+void dimm_Handle() {
+	aktMillis = millis();
+	altKey = aktKey;
+
+	if (aktMillis - prellMillis >= ENTPRELLZEIT) {
+		prellMillis = aktMillis;
+      if ((pin[GPIO_EXS_DimCh1] < 99) && (pin[GPIO_EXS_DimCh2] < 99)) {
+				aktKey = digitalRead(pin[GPIO_EXS_DimCh1]) & digitalRead(pin[GPIO_EXS_DimCh2]);
+				if (!digitalRead(pin[GPIO_EXS_DimCh1])) {
+					channel = 1;
+				}
+				else
+					if (!digitalRead(pin[GPIO_EXS_DimCh2])) {
+						channel = 2;
+					}
+			}
+			else {
+				if (pin[GPIO_EXS_DimCh1] < 99) {
+					aktKey = digitalRead(pin[GPIO_EXS_DimCh1]);
+					channel = 1;
+				}
+				else
+					if (pin[GPIO_EXS_DimCh2] < 99) {
+						aktKey = digitalRead(pin[GPIO_EXS_DimCh2]);
+						channel = 2;
+					}
+			}
+
+	}
+	Looper(channel);
+}
+
 /*
  * API Functions
  */
@@ -381,6 +540,7 @@ bool ExsSetChannels(void)
 
   Exs.dimm[0] = ((uint8_t *)XdrvMailbox.data)[0];
   Exs.dimm[1] = ((uint8_t *)XdrvMailbox.data)[1];
+
   return ExsSyncState();
 }
 
@@ -403,6 +563,11 @@ void EsxMcuStart(void)
 
   pinMode(pin[GPIO_EXS_ENABLE], OUTPUT);
   digitalWrite(pin[GPIO_EXS_ENABLE], LOW);
+
+  if ((pin[GPIO_EXS_DimCh1] < 99) && (pin[GPIO_EXS_DimCh2] < 99)) {
+    pinMode(pin[GPIO_EXS_DimCh1], INPUT_PULLUP);
+    pinMode(pin[GPIO_EXS_DimCh2], INPUT_PULLUP);
+  }
 
   delay(1); // wait 1ms fot the MCU to come online
 
@@ -613,6 +778,9 @@ bool Xdrv30(uint8_t function)
     case FUNC_LOOP:
       if (ExsSerial)
         ExsSerialInput();
+      break;
+    case FUNC_EVERY_50_MSECOND:
+          dimm_Handle();
       break;
     case FUNC_MODULE_INIT:
       result = ExsModuleSelected();
