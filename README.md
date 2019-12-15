@@ -1,3 +1,10 @@
+# Angepasste Tasmota Firmware
+Zugeschnitten auf das Dimmer Modul und das Blackline Modul
+
+Letzte Änderung 15.12.2019:<br>
+Tasten Dimmfunktion integriert.
+# 
+
 <img src="/tools/logo/TASMOTA_FullLogo_Vector.svg" alt="Logo" align="right" height="76"/>
 
 # Sonoff-Tasmota
