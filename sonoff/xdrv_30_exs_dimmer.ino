@@ -431,7 +431,7 @@ void Looper(byte channel) {
 			IstFunc = ZEIT;
 		}
     
-    if(Exs.dimmer.channel[channel-1].on){
+    if(Exs.dimmer.channel[channel-1].dimm){
 		  if (dimIndex1 == 99) {
 			  rauf1 = false; // Richtung ändern
 		  }
@@ -455,16 +455,16 @@ void Looper(byte channel) {
 		}
 		if (aktKey) {
       if (channel > 0) {
-        Exs.dimmer.channel[channel-1].on = !Exs.dimmer.channel[channel-1].on;
-        ExecuteCommandPower(channel, !Exs.dimmer.channel[channel-1].on, SRC_BUTTON);
+        Exs.dimmer.channel[channel-1].dimm = !Exs.dimmer.channel[channel-1].dimm;
+        ExecuteCommandPower(channel, Exs.dimmer.channel[channel-1].dimm, SRC_BUTTON);
 			}
 			IstFunc = WARTE;
 		}
 		break;
 	case DIMMEN:
 		if (aktKey) {
-			if(Exs.dimmer.channel[channel-1].on){
-        snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "%d %d"), channel-1, changeUIntScale(Exs.dimmer.channel[channel-1].bright_tbl, 0, 255, 0, 100));
+      if(Exs.dimmer.channel[channel-1].dimm){
+        snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "%d %d"), channel, changeUIntScale(Exs.dimmer.channel[channel-1].bright_tbl, 0, 255, 0, 100));
         ExecuteCommand(scmnd, SRC_BUTTON);
       }
 			IstFunc = WARTE;
@@ -474,7 +474,7 @@ void Looper(byte channel) {
 		}
 		if (aktMillis - dimMillis >= DIMVERZOEGERUNG) {
 			dimMillis = aktMillis;
-			if(Exs.dimmer.channel[channel-1].on)
+			if(Exs.dimmer.channel[channel-1].dimm)
         dim(channel);
 		}
 	}
@@ -548,8 +548,7 @@ bool ExsSetChannels(void)
 
 bool ExsSetPower(void)
 {
-  AddLog_P2(LOG_LEVEL_INFO, PSTR("EXS: Set Power, Device %d, Power 0x%02x"),
-            active_device, XdrvMailbox.index);
+  AddLog_P2(LOG_LEVEL_INFO, PSTR("EXS: Set Power, Device %d, Power 0x%02x"), active_device, XdrvMailbox.index);
 
   Exs.power = XdrvMailbox.index;
   return ExsSyncState();
