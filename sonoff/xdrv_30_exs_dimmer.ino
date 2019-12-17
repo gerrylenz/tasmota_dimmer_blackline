@@ -55,7 +55,7 @@
 #define EXS_ACK_TIMEOUT 200 // 200 ms ACK timeout
 
 #define ENTPRELLZEIT 10        // old 30
-#define DRUECKZEIT 300         // old 300
+#define DRUECKZEIT 600         // old 300
 #define DIMVERZOEGERUNG 50     // old 150
 
 #include <TasmotaSerial.h>
@@ -430,23 +430,24 @@ void Looper(byte channel) {
 			tasterMillis = aktMillis;
 			IstFunc = ZEIT;
 		}
+    
+    if(Exs.dimmer.channel[channel-1].on){
+		  if (dimIndex1 == 99) {
+			  rauf1 = false; // Richtung ändern
+		  }
+		  else
+			  if (dimIndex1 == 1) {
+				  rauf1 = true; // Richtung ändern
+			  }
 
-		if (dimIndex1 == 99) {
-			rauf1 = false; // Richtung ändern
-		}
-		else
-			if (dimIndex1 == 1) {
-				rauf1 = true; // Richtung ändern
-			}
-
-		if (dimIndex2 == 99) {
-			rauf2 = false; // Richtung ändern
-		}
-		else
-			if (dimIndex2 == 1) {
-				rauf2 = true; // Richtung ändern
-			}
-
+		  if (dimIndex2 == 99) {
+			  rauf2 = false; // Richtung ändern
+		  }
+		  else
+			  if (dimIndex2 == 1) {
+				  rauf2 = true; // Richtung ändern
+			  }
+    }
 		break;
 	case ZEIT:
 		if (aktMillis - tasterMillis >= DRUECKZEIT) {
@@ -473,7 +474,8 @@ void Looper(byte channel) {
 		}
 		if (aktMillis - dimMillis >= DIMVERZOEGERUNG) {
 			dimMillis = aktMillis;
-			dim(channel);
+			if(Exs.dimmer.channel[channel-1].on)
+        dim(channel);
 		}
 	}
 }
