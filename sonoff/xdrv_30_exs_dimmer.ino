@@ -24,7 +24,7 @@
  * https://ex-store.de/2-Kanal-RS232-WiFi-WLan-Dimmer-Modul-V4-fuer-Unterputzmontage-230V-3A
  * https://ex-store.de/2-Kanal-RS232-WiFi-WLan-Dimmer-Modul-V4-fuer-Unterputzmontage-230V-3A-ESP8266-V12-Stift-und-Buchsenleisten
 \*********************************************************************************************/
-//#define EXS_DEBUG
+#define EXS_DEBUG
 
 #define XDRV_30 30
 
@@ -557,15 +557,16 @@ void EsxMcuStart(void)
 {
   int retries = 3;
 
-#ifdef EXS_DEBUG
-  AddLog_P2(LOG_LEVEL_DEBUG, PSTR("EXS: Request MCU configuration, PIN %d to Low"), pin[GPIO_EXS_ENABLE]);
-#endif
+  AddLog_P2(LOG_LEVEL_DEBUG, PSTR("EXS: GPIO_EXS_DimCh1 PIN %d"), pin[GPIO_EXS_DimCh1]);
+  AddLog_P2(LOG_LEVEL_DEBUG, PSTR("EXS: GPIO_EXS_DimCh2 PIN %d"), pin[GPIO_EXS_DimCh2]);
 
   pinMode(pin[GPIO_EXS_ENABLE], OUTPUT);
   digitalWrite(pin[GPIO_EXS_ENABLE], LOW);
-
-  if ((pin[GPIO_EXS_DimCh1] < 99) && (pin[GPIO_EXS_DimCh2] < 99)) {
+  
+  if (pin[GPIO_EXS_DimCh1] < 99){
     pinMode(pin[GPIO_EXS_DimCh1], INPUT_PULLUP);
+  }
+  if (pin[GPIO_EXS_DimCh2] < 99){
     pinMode(pin[GPIO_EXS_DimCh2], INPUT_PULLUP);
   }
 

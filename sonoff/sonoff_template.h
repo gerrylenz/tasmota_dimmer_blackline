@@ -2219,9 +2219,9 @@ const mytmplt kModules[MAXMODULE] PROGMEM = {
      0,                // GPIO09 (SD_DATA2 Flash QIO or ESP8285)
      0,                // GPIO10 (SD_DATA3 Flash QIO or ESP8285)
                        // GPIO11 (SD_CMD   Flash)
-     GPIO_EXS_DimCh1,  // GPIO12 Dimmbutton Channel 1
+     GPIO_USER,  // GPIO12 Dimmbutton Channel 1
      GPIO_EXS_ENABLE,  // GPIO13 EXS MCU Enable
-     GPIO_EXS_DimCh2,  // GPIO14 Dimmbutton Channel 2
+     GPIO_USER,  // GPIO14 Dimmbutton Channel 2
      0,                // GPIO15
      0, 0
   }
