@@ -463,14 +463,14 @@ void Looper(byte channel) {
 		break;
 	case DIMMEN:
 		if (aktKey) {
+			if(Exs.dimmer.channel[channel-1].on){
+        snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "%d %d"), channel-1, changeUIntScale(Exs.dimmer.channel[channel-1].bright_tbl, 0, 255, 0, 100));
+        ExecuteCommand(scmnd, SRC_BUTTON);
+      }
 			IstFunc = WARTE;
 			channel = 0;
 			rauf1 = !rauf1;
 			rauf2 = !rauf2;
-      snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "1 %d"), changeUIntScale(Exs.dimmer.channel[0].bright_tbl, 0, 255, 0, 100));
-      ExecuteCommand(scmnd, SRC_BUTTON);
-      snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_CHANNEL "2 %d"), changeUIntScale(Exs.dimmer.channel[1].bright_tbl, 0, 255, 0, 100));
-      ExecuteCommand(scmnd, SRC_BUTTON);
 		}
 		if (aktMillis - dimMillis >= DIMVERZOEGERUNG) {
 			dimMillis = aktMillis;
