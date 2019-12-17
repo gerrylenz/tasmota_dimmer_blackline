@@ -1,6 +1,21 @@
 # Angepasste Tasmota Firmware
 Zugeschnitten auf das Dimmer Modul und das Blackline Modul
 
+Letzte Änderung 17.12.2019:<br>
+Update in<br>
+void EsxMcuStart(void)<br>
+...<br>
+if (pin[GPIO_EXS_DimCh1] < 99){<br>
+    pinMode(pin[GPIO_EXS_DimCh1], INPUT_PULLUP);<br>
+  }<br>
+  if (pin[GPIO_EXS_DimCh2] < 99){<br>
+    pinMode(pin[GPIO_EXS_DimCh2], INPUT_PULLUP);<br>
+  }<br>
+  <br>
+  delay(1); // wait 1ms fot the MCU to come online<br>
+ ...<br>
+ 
+ 
 Letzte Änderung 15.12.2019:<br>
 Tasten Dimmfunktion integriert.<br>
 Kurzer druck: "an/Aus"<br>
